@@ -26,7 +26,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>MAIN CLASS</mainClass>
+                            <mainClass>com.github.distriful5061.AllergyProfile.Main</mainClass>
                             <addExtensions>false</addExtensions>
                         </manifest>
                     </archive>
