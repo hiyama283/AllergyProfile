@@ -3,6 +3,11 @@ package com.github.distriful5061.AllergyProfile.mixins;
 import com.github.distriful5061.AllergyProfile.Utils.ResourceUtils;
 import com.github.distriful5061.AllergyProfile.Utils.SQL.SQLUtils;
 
+/**
+ * Utilsファイルの初期設定を済ませるクラス。
+ *
+ * @since 1.0
+ */
 public class mixinLoadUtils {
     public static void main() {
         // Setup SQL Utils

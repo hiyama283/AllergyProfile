@@ -6,7 +6,7 @@
 
     <groupId>com.github.distrufl5061.allergyprofile</groupId>
     <artifactId>AlergyProfileAPI</artifactId>
-    <version>1.0.0</version>
+    <version>1.0</version>
 
     <build>
         <plugins>
@@ -44,7 +44,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.github.distriful5061.AllergyProfile.Main</mainClass>
+                            <mainClass>com.github.distriful5061.AllergyProfile.Initializer</mainClass>
                             <addExtensions>false</addExtensions>
                         </manifest>
                     </archive>
