@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.github.distriful5061.allergyprofile</groupId>
-	<artifactId>AllergyprofileApi</artifactId>
+	<artifactId>AllergyProfileApi</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>AllergyprofileApi</name>
+	<name>AllergyProfileApi</name>
 	<description>Spring Boot based API service</description>
 	<properties>
 		<java.version>17</java.version>
@@ -39,12 +39,40 @@
 	</dependencies>
 
 	<build>
-		<plugins>
+	    <plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-		</plugins>
+	        <plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-compiler-plugin</artifactId>
+	            <version>3.10.1</version>
+	            <configuration>
+	                <source>17</source>
+	                <target>17</target>
+	            </configuration>
+	        </plugin>
+	        <plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-jar-plugin</artifactId>
+	            <version>2.4</version>
+	            <configuration>
+	                <archive>
+	                    <manifest>
+	                        <mainClass>cui.multiprotocol.dos.Main</mainClass>
+	                        <addExtensions>false</addExtensions>
+	                    </manifest>
+	                </archive>
+	            </configuration>
+	    </plugin>
+	    </plugins>
+	    <resources>
+	        <resource>
+	            <directory>src/main/resources</directory>
+	            <filtering>true</filtering>
+	        </resource>
+	    </resources>
 	</build>
 
 </project>
