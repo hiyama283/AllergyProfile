@@ -1,5 +1,6 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http;
 
+import com.github.distriful5061.AllergyProfile.Utils.BaseUtils;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Exception.EmptyRequestException;
 
 import java.io.ByteArrayInputStream;
@@ -14,7 +15,11 @@ import java.util.List;
 
 import static com.github.distriful5061.AllergyProfile.WebServer.Http.IncomingRequest.CRLF;
 
-public class IOUtil {
+public class IOUtil implements BaseUtils {
+    @Override
+    public int hashCode() {
+        return 1;
+    }
 
     private static final Charset UTF_8 = StandardCharsets.UTF_8;
 

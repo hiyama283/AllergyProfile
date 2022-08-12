@@ -12,14 +12,9 @@ import java.util.Map;
 import java.util.Objects;
 
 public class HttpResponse {
-    private int statusCode;
     private Map<String, String> headers = new HashMap<>();
     private String body;
     private File bodyFile;
-
-    public HttpResponse(int statusCode) {
-        this.statusCode = statusCode;
-    }
 
     public void addHeader(String key, Object value) {
         headers.put(key, value.toString());
@@ -52,7 +47,7 @@ public class HttpResponse {
     }
 
     public void write(OutputStream outputStream) {
-        IOUtil.println(outputStream, "HTTP/1.1"  + statusCode);
+        IOUtil.println(outputStream, "HTTP/1.1 200 OK");
 
         headers.forEach((key, value) -> {
             IOUtil.println(outputStream, "%s:%s".formatted(key, value));

@@ -5,54 +5,51 @@ import com.github.distriful5061.AllergyProfile.WebServer.Http.IOUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpRequest {
     public static final String CRLF = "\r\n";
-    private final Socket inSocket;
-    private final String header;
-    private final String body;
+    private Socket inSocket;
+    private HttpHeader httpHeader = null;
+    private String body = null;
+    private final Map<String, String> headerMap = new HashMap<>();
 
     public HttpRequest(Socket socket) {
-        String[] parsedSocketResult = loadHeaderAndBody(socket);
-        header = parsedSocketResult[0];
-        body = parsedSocketResult[1];
+        try (InputStream inputStream = socket.getInputStream()) {
+            httpHeader = new HttpHeader(readHeader(inputStream));
+            body = readBody(inputStream);
+        } catch (IOException ignored) {}
         inSocket = socket;
+
+        for (String str : httpHeader.getHeader().split("\r\n")) {
+            String[] splitString = str.split(":");
+            headerMap.put(splitString[0].trim(), splitString[1].trim());
+        }
     }
 
     @Override
     public String toString() {
-        return header + body;
+        return httpHeader.toString() + body;
     }
 
-    public String getHeader() {
-        return header;
+    public HttpHeader getHeader() {
+        return httpHeader;
     }
 
     public String getBody() {
         return body;
     }
 
-    public Socket getSInSocket() {
+    public Socket getInSocket() {
         return inSocket;
     }
 
-    public static String[] loadHeaderAndBody(Socket socket) {
-        String[] result = new String[2];
-
-        try (
-                InputStream inputStream = socket.getInputStream();
-        )
-        {
-            result[0] = readHeader(inputStream);
-            result[1] = readBody(inputStream, result[0]);
-
-        } catch (IOException ignored) {}
-
-        return result;
+    public Map<String, String> getHeaderMap() {
+        return headerMap;
     }
 
-    public static String readHeader(InputStream in) throws IOException {
+    public String readHeader(InputStream in) throws IOException {
         String line = IOUtil.readLine(in);
         StringBuilder header = new StringBuilder();
 
@@ -64,18 +61,31 @@ public class HttpRequest {
         return header.toString();
     }
 
-    public static String readBody(InputStream in, String headerText) throws IOException {
+    public String readBody(InputStream in) throws IOException {
         String result;
-        if (isChunkedTransfer(headerText)) {
+        if (httpHeader.isChunkedTransfer()) {
             result = readBodyByChunkedTransfer(in);
         } else {
-            result = readBodyByContentLength(in, headerText);
+            result = readBodyByContentLength(in);
         }
 
         return result;
     }
 
-    public static String readBodyByChunkedTransfer(InputStream in) throws IOException {
+    public String readBodyByContentLength(InputStream in) throws IOException {
+        final int contentLength = httpHeader.getContentLength();
+
+        if (contentLength <= 0) {
+            return null;
+        }
+
+        byte[] buffer = new byte[contentLength];
+        in.read(buffer);
+
+        return IOUtil.toString(buffer);
+    }
+
+    public String readBodyByChunkedTransfer(InputStream in) throws IOException {
         StringBuilder body = new StringBuilder();
 
         int chunkSize = Integer.parseInt(IOUtil.readLine(in), 16);
@@ -91,34 +101,6 @@ public class HttpRequest {
         }
 
         return body.toString();
-    }
-
-    public static String readBodyByContentLength(InputStream in, String headerText) throws IOException {
-        final int contentLength = getContentLength(headerText);
-
-        if (contentLength <= 0) {
-            return null;
-        }
-
-        byte[] buffer = new byte[contentLength];
-        in.read(buffer);
-
-        return IOUtil.toString(buffer);
-    }
-
-    public static int getContentLength(String headerText) {
-        return Stream.of(headerText.split(CRLF))
-                .filter(headerLine -> headerLine.startsWith("Content-Length"))
-                .map(contentLengthHeader -> contentLengthHeader.split(":")[1].trim())
-                .mapToInt(Integer::parseInt)
-                .findFirst().orElse(0);
-    }
-
-    public static boolean isChunkedTransfer(String headerText) {
-        return Stream.of(headerText.split(CRLF))
-                .filter(headerLine -> headerLine.startsWith("Transfer-Encoding"))
-                .map(transferEncoding -> transferEncoding.split(":")[1].trim())
-                .anyMatch("chunked"::equals);
     }
 
 }
