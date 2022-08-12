@@ -1,6 +1,7 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http.Connections;
 
 import com.github.distriful5061.AllergyProfile.WebServer.Http.ContentType;
+import com.github.distriful5061.AllergyProfile.WebServer.Http.HttpStatusCode;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.IOUtil;
 
 import java.io.File;
@@ -12,20 +13,35 @@ import java.util.Map;
 import java.util.Objects;
 
 public class HttpResponse {
-    private Map<String, String> headers = new HashMap<>();
+    private final Map<String, String> headers = new HashMap<>();
+    private HttpStatusCode statusCode;
     private String body;
     private File bodyFile;
 
-    public void addHeader(String key, Object value) {
-        headers.put(key, value.toString());
+    public static Map<String, Object> getDefaultHeader() {
+        Map<String, Object> result = new HashMap<>();
+
+        result.put("Cache-Control", "public, max-age=21600");
+
+        return result;
     }
 
-    public void addHeader(String[] keys, Object[] values) {
-        if (keys.length != values.length) return;
+    public HttpResponse() {
+        this.statusCode = HttpStatusCode.OK;
+    }
 
-        for (int i = 0; i < keys.length; i++) {
-            headers.put(keys[i], values[i].toString());
-        }
+    public HttpResponse(HttpStatusCode httpStatusCode) {
+        this.statusCode = httpStatusCode;
+    }
+
+    public void addHeader(String key, Object value) {
+        headers.put(key.toLowerCase(), value.toString());
+    }
+
+    public void addHeader(Map<String, Object> mapObject) {
+        mapObject.forEach((key, value) -> {
+            headers.put(key.toLowerCase(), value.toString());
+        });
     }
 
     public void clearHeader() {
@@ -46,21 +62,29 @@ public class HttpResponse {
         this.addHeader("Content-Type", ContentType.toContentType(extension));
     }
 
-    public void write(OutputStream outputStream) {
-        IOUtil.println(outputStream, "HTTP/1.1 200 OK");
+    public HttpStatusCode getStatusCode() {
+        return this.statusCode;
+    }
 
-        headers.forEach((key, value) -> {
-            IOUtil.println(outputStream, "%s:%s".formatted(key, value));
-        });
+    public void setStatusCode(int statusCodeNumber) {
+        this.statusCode = HttpStatusCode.getByStatusCode(statusCodeNumber);
+    }
+
+    public void setStatusCode(HttpStatusCode httpStatusCode) {
+        this.statusCode = httpStatusCode;
+    }
+
+    public void write(OutputStream outputStream) throws IOException {
+        IOUtil.println(outputStream, "HTTP/1.1 " + statusCode.toString());
+
+        headers.forEach((key, value) -> IOUtil.println(outputStream, "%s:%s".formatted(key, value)));
 
         if (this.body != null) {
             IOUtil.println(outputStream, "");
             IOUtil.println(outputStream, body);
         } else if (this.bodyFile != null) {
             IOUtil.println(outputStream, "");
-            try {
-                Files.copy(bodyFile.toPath(), outputStream);
-            } catch (IOException ignored) {}
+            Files.copy(bodyFile.toPath(), outputStream);
         }
     }
 }

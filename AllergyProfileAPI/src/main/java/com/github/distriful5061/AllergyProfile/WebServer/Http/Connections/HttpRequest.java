@@ -1,5 +1,6 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http.Connections;
 
+import com.github.distriful5061.AllergyProfile.WebServer.Http.HttpStatusCode;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.IOUtil;
 
 import java.io.IOException;

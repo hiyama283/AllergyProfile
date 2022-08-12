@@ -9,7 +9,7 @@ public class Initializer {
         mixinLoadUtils.main();
 
         // Start Server
-        HttpServerHost httpServerHost = new HttpServerHost(80);
+        HttpServerHost httpServerHost = new HttpServerHost(8080);
         new Thread(httpServerHost).start();
     }
 }

@@ -14,6 +14,16 @@ public class ResourceUtils implements BaseUtils {
     }
 
     /**
+     * リソースをFile型にして返す、
+     *
+     * @param name パスかファイル名称
+     * @return Fileになったリソースアイテム
+     */
+    public static File getFileResourcesByName(String name) {
+        return new File("src/main/resources/" + name);
+    }
+
+    /**
      * プレーンテキストのリソースファイル(src/main/resourcesフォルダから)を取得するメソッド。
      *
      * @param name リソースファイルの名前

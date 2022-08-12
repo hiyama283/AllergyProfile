@@ -1,6 +1,5 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http.Connections;
 
-import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpRequest.CRLF;
