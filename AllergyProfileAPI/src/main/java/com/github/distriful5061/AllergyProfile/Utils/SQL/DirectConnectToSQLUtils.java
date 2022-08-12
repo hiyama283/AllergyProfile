@@ -7,7 +7,7 @@ import com.github.distriful5061.AllergyProfile.Utils.BaseUtils;
  *
  * @since 1.0.0
  */
-public class SQLUtils implements BaseUtils {
+public class DirectConnectToSQLUtils implements BaseUtils {
     private static String sqlServerUrl;
     private static String targetSqlUserName;
     private static String targetSqlPassWord;
