@@ -1,6 +1,5 @@
 package com.github.distriful5061.AllergyProfile.Handlers.WebHandlers;
 
-import com.github.distriful5061.AllergyProfile.Handlers.WebHandlers.AbstractBaseHandler;
 import com.github.distriful5061.AllergyProfile.Utils.ResourceUtils;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpMethod;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpResponse;

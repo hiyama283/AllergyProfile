@@ -1,5 +1,7 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http.Connections;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
 import static com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpRequest.CRLF;
@@ -34,7 +36,7 @@ public class HttpHeader {
 
         String[] splitStartLine = startLine.split(" ");
         this.method = HttpMethod.valueOf(splitStartLine[0].toUpperCase());
-        this.path = splitStartLine[1];
+        this.path = URLDecoder.decode(splitStartLine[1], StandardCharsets.UTF_8);
     }
 
     public String getStartLine() {

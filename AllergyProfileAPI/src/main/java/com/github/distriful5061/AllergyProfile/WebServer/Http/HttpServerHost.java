@@ -1,10 +1,14 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http;
 
 import com.github.distriful5061.AllergyProfile.Handlers.WebHandlers.AbstractBaseHandler;
+import com.github.distriful5061.AllergyProfile.Utils.Log.LogLevel;
+import com.github.distriful5061.AllergyProfile.Utils.Log.LogUtils;
+import com.github.distriful5061.AllergyProfile.Utils.ResourceUtils;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpMethod;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpRequest;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpResponse;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,25 +37,30 @@ public class HttpServerHost implements Runnable {
      * @see AbstractBaseHandler
      */
     public static void addHandler(String path, AbstractBaseHandler baseHandler) {
-        if (handlerList.containsKey(path + "|" + baseHandler.getSupportedMethod())) {
-            handlerList.replace(path, baseHandler);
+        String addedPath = path + "|" + baseHandler.getSupportedMethod();
+        if (handlerList.containsKey(addedPath)) {
+            handlerList.replace(addedPath, baseHandler);
             return;
         }
-        handlerList.put(path, baseHandler);
+        handlerList.put(addedPath, baseHandler);
     }
 
     /**
      * AbstractBaseHandlerベースのハンドラーをリストから削除するメソッド
      *
      * @param path そのハンドラーが割り当てられているpath
+     * @param httpMethod 対応しているメソッド。
      * @return そのabstractBaseHandlerのインスタンス
      * @see AbstractBaseHandler
      */
-    public static AbstractBaseHandler deleteHandler(String path) {
+    public static AbstractBaseHandler deleteHandler(String path, HttpMethod httpMethod) {
         AbstractBaseHandler tmp = null;
-        if (handlerList.containsKey(path)) {
-            tmp = handlerList.get(path);
-            handlerList.remove(path);
+
+        String addPath = path + "|" + httpMethod;
+
+        if (handlerList.containsKey(addPath)) {
+            tmp = handlerList.get(addPath);
+            handlerList.remove(addPath);
         }
         return tmp;
     }
@@ -93,8 +102,9 @@ public class HttpServerHost implements Runnable {
         ServerSocket serverSocket;
         try {
             serverSocket = new ServerSocket(PORT);
-        } catch (IOException ignored) {
-            System.out.println("System downed");// LogUtilsに置き換え予定
+        } catch (Throwable e) {
+            LogUtils.println("ServerSocket boot has failed.", LogLevel.FATAL);
+            LogUtils.println(e.getMessage(), LogLevel.TRACE);
             return;
         }
 
@@ -112,58 +122,105 @@ public class HttpServerHost implements Runnable {
                             HttpRequest httpRequest = new HttpRequest(inputStream);
                             String path = httpRequest.getHeader().getPath();
                             HttpMethod requestMethod = httpRequest.getHeader().getMethod();
+                            String hostAddress = socket.getInetAddress().getHostAddress();
+
+                            LogUtils.println("Connection %s -> Me | Method:%s Path:%s".formatted(hostAddress, requestMethod.toString(), path));
 
                             if (requestMethod == HttpMethod.GET) {// GET以外のメソッドはこの後実装します
-                                if (handlerList.containsKey(path + "|" + HttpMethod.GET)) {
+                                String addPath = path + "|" + HttpMethod.GET;
+                                if (handlerList.containsKey(addPath)) {
                                     flag = false;
 
-                                    AbstractBaseHandler abstractBaseHandler = handlerList.get(path);
+                                    AbstractBaseHandler abstractBaseHandler = handlerList.get(addPath);
 
                                     try {
                                         abstractBaseHandler.run(inputStream, outputStream);
+                                        LogUtils.println("Connection %s <- Me | Response by Handler".formatted(hostAddress));
                                     } catch (Throwable e) {
+                                        LogUtils.println("Error at GET Method Handlers Area", LogLevel.ERROR);
+                                        LogUtils.println(e.getMessage(), LogLevel.TRACE);
                                         throw new IOException(e.getMessage());
+                                    }
+                                } else if (path.startsWith("/resources/")) {
+                                    int resourcesPathLength = "/resources/".length();
+                                    String cutString = path.substring(resourcesPathLength).replace("../", "");
+
+                                    File file = ResourceUtils.getFileResourcesByName("resource/" + cutString);
+
+                                    if (file.exists() && file.isFile()) {
+                                        flag = false;
+                                        HttpResponse httpResponse = new HttpResponse();
+                                        Map<String, Object> headers = HttpResponse.getDefaultHeader();
+
+                                        httpResponse.setStatusCode(HttpStatusCode.OK);
+                                        httpResponse.addHeader(headers);
+                                        httpResponse.setBody(file);
+
+                                        try {
+                                            httpResponse.write(outputStream);
+                                            LogUtils.println("Connection %s <- Me | Msg: Resource Access StatusCode: %d ResourceTarget: %s".formatted(hostAddress, httpResponse.getStatusCode().getStatusCode(),cutString));
+                                        } catch (IOException e) {
+                                            LogUtils.println("Error at Resource Area", LogLevel.ERROR);
+                                            LogUtils.println(e.getMessage(), LogLevel.TRACE);
+                                        }
                                     }
                                 }
                             } else if (requestMethod == HttpMethod.POST) {
-                                throwSimpleCode(outputStream, HttpStatusCode.BAD_REQUEST);
+                                flag = false;
+                                throwSimpleCode(outputStream, HttpStatusCode.BAD_REQUEST, "Unsupported Method");
+                                LogUtils.println("Connection %s <- Me | Msg: Not Supported Method, StatusCode: 400".formatted(hostAddress));
                             } else if (requestMethod == HttpMethod.PUT) {
-                                throwSimpleCode(outputStream, HttpStatusCode.BAD_REQUEST);
+                                flag = false;
+                                throwSimpleCode(outputStream, HttpStatusCode.BAD_REQUEST, "Unsupported Method");
+                                LogUtils.println("Connection %s <- Me | Msg: Not Supported Method, StatusCode: 400".formatted(hostAddress));
                             } else if (requestMethod == HttpMethod.DELETE) {
-                                throwSimpleCode(outputStream, HttpStatusCode.BAD_REQUEST);
+                                flag = false;
+                                throwSimpleCode(outputStream, HttpStatusCode.BAD_REQUEST, "Unsupported Method");
+                                LogUtils.println("Connection %s <- Me | Msg: Not Supported Method, StatusCode: 400".formatted(hostAddress));
                             }
 
                             if (flag) {
                                 throwSimpleCode(outputStream, HttpStatusCode.NOT_FOUND);
+                                LogUtils.println("Connection %s <- Me | Msg: Not Found, StatusCode: 404".formatted(hostAddress));
                             }
 
                         } catch (IOException ignored) {
+                            String host = socket.getInetAddress().getHostAddress();
                             try {
                                 throwSimpleCode(outputStream, HttpStatusCode.INTERNAL_SERVER_ERROR);
-                            } catch (IOException ignored1) {}
+                                LogUtils.println("Connection %s <- Me | Msg: Internal Server Error, StatusCode: 500".formatted(host));
+                            } catch (IOException ignored1) {
+                                LogUtils.println("Connection Failed | %s".formatted(host));
+                            }
                         } finally {
                             try {
                                 socket.close();
                                 inputStream.close();
                                 outputStream.close();
-                            } catch (IOException ignored1) {}
+                            } catch (IOException ignored1) {
+                                LogUtils.println("Socket's Close failed", LogLevel.ERROR);
+                            }
                         }
                     };
                     new Thread(socketProcessor).start();
 
-                } catch (IOException ignored) {
+                } catch (IOException e) {
+                    LogUtils.println("IO Exception", LogLevel.ERROR);
+                    LogUtils.println(e.getMessage(), LogLevel.TRACE);
                 }
             }
         } catch (Throwable e) {
+            LogUtils.println("Fatal Error", LogLevel.FATAL);
+            LogUtils.println(e.getMessage(), LogLevel.TRACE);
+
             try {
                 serverSocket.close();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
+
             e.printStackTrace();
         }
-
-        System.out.println("oh no system are shutdown ed");
         System.exit(-1);
     }
 }
