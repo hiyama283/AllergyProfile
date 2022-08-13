@@ -4,12 +4,22 @@ import java.util.stream.Stream;
 
 import static com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpRequest.CRLF;
 
+/**
+ * Httpリクエストを送信した際に、ヘッダーから読み取れる様々な情報を提供するクラス。現在リクエストヘッダー保管庫として使用されている
+ *
+ * @since 1.0
+ */
 public class HttpHeader {
     private String startLine;
     private String header;
     private HttpMethod method;
     private String path;
 
+    /**
+     * コンストラクタ。String型のリクエストヘッダーヘッダーを受け渡すことで、様々な情報を読み取る
+     *
+     * @param header ヘッダー
+     */
     public HttpHeader(String header) {
         String[] splitHeader = header.split("\r\n");
 
@@ -48,6 +58,11 @@ public class HttpHeader {
         return header;
     }
 
+    /**
+     * ContentLength(bodyを読み取るのに必要な情報)を取得するメソッド
+     *
+     * @return content-lengthの値
+     */
     public int getContentLength() {
         return Stream.of(header.split(CRLF))
                 .filter(headerLine -> headerLine.startsWith("Content-Length"))
@@ -56,6 +71,11 @@ public class HttpHeader {
                 .findFirst().orElse(0);
     }
 
+    /**
+     * Chunk型のプロトコルかどうか判別するメソッド
+     *
+     * @return True=はい
+     */
     public boolean isChunkedTransfer() {
         return Stream.of(header.split(CRLF))
                 .filter(headerLine -> headerLine.startsWith("Transfer-Encoding"))

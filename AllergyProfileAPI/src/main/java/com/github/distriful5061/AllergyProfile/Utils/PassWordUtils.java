@@ -17,6 +17,11 @@ public class PassWordUtils implements BaseUtils {
         return 1234617091;
     }
 
+    /**
+     * よくわからんけどシード値とかを生成してくれます
+     *
+     * @return シード値
+     */
     public static long getSeed() {
         return new NewPassWord().generateMultipliedRandomLong(5, System.nanoTime());
     }

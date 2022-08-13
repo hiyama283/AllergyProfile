@@ -7,7 +7,15 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Httpのリクエストのヘッダ/ボディーを格納するクラス
+ *
+ * @since 1.0
+ */
 public class HttpRequest {
+    /**
+     * \rと\nを組み合わせたやつ。HTTP/1.1ではこれが改行になる
+     */
     public static final String CRLF = "\r\n";
     private final HttpHeader httpHeader;
     private final String body;
@@ -40,6 +48,13 @@ public class HttpRequest {
         return headerMap;
     }
 
+    /**
+     * ヘッダーのみを読み込み。String型として返される。HttpHeaderの場合はnewでコンストラクタにこの結果を引き渡せばいい。
+     *
+     * @param in InputStream
+     * @return ヘッダー
+     * @throws IOException ヘッダーの読み込みに失敗
+     */
     public String readHeader(InputStream in) throws IOException {
         String line = IOUtil.readLine(in);
         StringBuilder header = new StringBuilder();
@@ -52,6 +67,13 @@ public class HttpRequest {
         return header.toString();
     }
 
+    /**
+     * Bodyを読み込む。原理はContent-LengthとTransferLengthの検知
+     *
+     * @param in InputStream
+     * @return ボディ
+     * @throws IOException ボディーの読み込みに失敗
+     */
     public String readBody(InputStream in) throws IOException {
         String result;
         if (httpHeader.isChunkedTransfer()) {

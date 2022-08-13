@@ -9,6 +9,9 @@ import com.github.distriful5061.AllergyProfile.Utils.SQL.DirectConnectToSQLUtils
  * @since 1.0
  */
 public class mixinLoadUtils {
+    /**
+     * Static型のutilsを設定する
+     */
     public static void main() {
         // Setup SQL Utils
         String[] sqlSettings = ResourceUtils.getPlainTextResourcesByName("SqlSettings.txt").split("\n");
