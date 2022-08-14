@@ -198,7 +198,7 @@ public class HttpServerHost implements Runnable {
 
                                 LogUtils.println("Request Body(%s) \u21BB Me: %s".formatted(hostAddress, httpRequest.getBody()));
 
-                                if (handlerList.containsKey(addPath)) {
+                                if (handlerList.containsKey(addPath) && httpRequest.getBody() != null) {
                                     flag = false;
 
                                     AbstractBaseHandler abstractBaseHandler = handlerList.get(addPath);
@@ -213,9 +213,43 @@ public class HttpServerHost implements Runnable {
                                     }
                                 }
                             } else if (requestMethod == HttpMethod.PUT) {
+                                String addPath = path + "|" + HttpMethod.PUT;
 
+                                LogUtils.println("Request Body(%s) \u21BB Me: %s".formatted(hostAddress, httpRequest.getBody()));
+
+                                if (handlerList.containsKey(addPath) && httpRequest.getBody() != null) {
+                                    flag = false;
+
+                                    AbstractBaseHandler abstractBaseHandler = handlerList.get(addPath);
+
+                                    try {
+                                        abstractBaseHandler.run(inputStream, outputStream, httpRequest);
+                                        LogUtils.println("Connection %s <- Me | Response by Handler".formatted(hostAddress));
+                                    } catch (Throwable e) {
+                                        LogUtils.println("Error at PUT Method Handlers Area", LogLevel.ERROR);
+                                        LogUtils.println(e.getMessage(), LogLevel.TRACE);
+                                        throw new IOException(e.getMessage());
+                                    }
+                                }
                             } else if (requestMethod == HttpMethod.DELETE) {
+                                String addPath = path + "|" + HttpMethod.DELETE;
 
+                                LogUtils.println("Request Body(%s) \u21BB Me: %s".formatted(hostAddress, httpRequest.getBody()));
+
+                                if (handlerList.containsKey(addPath) && httpRequest.getBody() != null) {
+                                    flag = false;
+
+                                    AbstractBaseHandler abstractBaseHandler = handlerList.get(addPath);
+
+                                    try {
+                                        abstractBaseHandler.run(inputStream, outputStream, httpRequest);
+                                        LogUtils.println("Connection %s <- Me | Response by Handler".formatted(hostAddress));
+                                    } catch (Throwable e) {
+                                        LogUtils.println("Error at DELETE Method Handlers Area", LogLevel.ERROR);
+                                        LogUtils.println(e.getMessage(), LogLevel.TRACE);
+                                        throw new IOException(e.getMessage());
+                                    }
+                                }
                             }
 
                             if (flag) {
@@ -272,7 +306,7 @@ public class HttpServerHost implements Runnable {
             }
         } catch (Throwable e) {
             LogUtils.println("Fatal Error", LogLevel.FATAL);
-            LogUtils.println(e.getMessage(), LogLevel.TRACE);
+            LogUtils.println(e.getMessage(), LogLevel.FATAL);
 
             try {
                 serverSocket.close();
