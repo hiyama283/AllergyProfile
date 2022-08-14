@@ -8,7 +8,7 @@ import com.github.distriful5061.AllergyProfile.Utils.SQL.DirectConnectToSQLUtils
  *
  * @since 1.0
  */
-public class mixinLoadUtils {
+public class MixinLoadUtils {
     /**
      * Static型のutilsを設定する
      */

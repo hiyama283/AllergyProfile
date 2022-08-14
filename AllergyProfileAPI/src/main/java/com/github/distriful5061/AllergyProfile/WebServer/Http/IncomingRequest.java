@@ -1,5 +1,7 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http;
 
+import com.github.distriful5061.AllergyProfile.Utils.IOUtil;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;

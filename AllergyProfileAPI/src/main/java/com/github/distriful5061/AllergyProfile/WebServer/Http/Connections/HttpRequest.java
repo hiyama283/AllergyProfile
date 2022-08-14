@@ -1,6 +1,8 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http.Connections;
 
-import com.github.distriful5061.AllergyProfile.WebServer.Http.IOUtil;
+import com.github.distriful5061.AllergyProfile.Utils.IOUtil;
+import com.github.distriful5061.AllergyProfile.Utils.Log.LogLevel;
+import com.github.distriful5061.AllergyProfile.Utils.Log.LogUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,13 +24,17 @@ public class HttpRequest {
     private final Map<String, String> headerMap = new HashMap<>();
 
     public HttpRequest(InputStream inputStream) throws IOException {
+        // LogUtils.println("B HEAD", LogLevel.DEBUG);
         httpHeader = new HttpHeader(readHeader(inputStream));
+        // LogUtils.println("B HEAD OK", LogLevel.DEBUG);
         body = readBody(inputStream);
+        // LogUtils.println("B BODY OK", LogLevel.DEBUG);
 
         for (String str : httpHeader.getHeader().split("\r\n")) {
             String[] splitString = str.split(":");
             headerMap.put(splitString[0].trim(), splitString[1].trim());
         }
+        // LogUtils.println("B HEAD MAP OK", LogLevel.DEBUG);
     }
 
     @Override

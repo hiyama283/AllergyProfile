@@ -1,4 +1,4 @@
-package com.github.distriful5061.AllergyProfile.WebServer.Http;
+package com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.Header;
 
 import java.util.Arrays;
 import java.util.HashMap;
