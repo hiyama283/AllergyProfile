@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Initializer" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="com.github.distriful5061.AllergyProfile.Initializer" />
+    <module name="AllergyProfileAPI" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.github.distriful5061.AllergyProfile.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

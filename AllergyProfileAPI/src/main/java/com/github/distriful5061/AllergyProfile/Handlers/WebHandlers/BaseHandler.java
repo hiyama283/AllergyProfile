@@ -1,7 +1,9 @@
 package com.github.distriful5061.AllergyProfile.Handlers.WebHandlers;
 
-import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpMethod;
+import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.Header.HttpMethod;
+import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpRequest;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -12,7 +14,7 @@ import java.io.OutputStream;
  */
 public interface BaseHandler {
     HttpMethod supportedMethod = HttpMethod.GET;
-    void run(InputStream inputStream, OutputStream outputStream);
+    void run(InputStream inputStream, OutputStream outputStream, HttpRequest httpRequest) throws IOException;
 
     HttpMethod getSupportedMethod();
 }

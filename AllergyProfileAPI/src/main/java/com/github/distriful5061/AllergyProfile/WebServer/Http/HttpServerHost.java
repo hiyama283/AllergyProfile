@@ -1,12 +1,16 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http;
 
 import com.github.distriful5061.AllergyProfile.Handlers.WebHandlers.AbstractBaseHandler;
+import com.github.distriful5061.AllergyProfile.Utils.GsonUtils;
 import com.github.distriful5061.AllergyProfile.Utils.Log.LogLevel;
 import com.github.distriful5061.AllergyProfile.Utils.Log.LogUtils;
 import com.github.distriful5061.AllergyProfile.Utils.ResourceUtils;
-import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpMethod;
+import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.Header.ContentType;
+import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.Header.HttpMethod;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpRequest;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpResponse;
+import com.github.distriful5061.AllergyProfile.WebServer.Http.Gson.Response.BasicError;
+import com.github.distriful5061.AllergyProfile.WebServer.Http.Gson.Response.StatusCodeOnly;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,6 +67,30 @@ public class HttpServerHost implements Runnable {
             handlerList.remove(addPath);
         }
         return tmp;
+    }
+
+    /**
+     * スタッツコードと、Jsonに変換できるクラス(インスタンス)を使用することで、簡単にjsonとして返信ができるメソッド。
+     *
+     * @param outputStream 送信先stream
+     * @param httpStatusCode ステータスコード
+     * @param jsonObject Jsonに変換できるオブジェクト
+     * @throws IOException 送信に失敗しました。
+     */
+    public static void throwSimpleCodeWithJson(OutputStream outputStream, HttpStatusCode httpStatusCode, Object jsonObject) throws IOException {
+        if (jsonObject == null) jsonObject = new StatusCodeOnly(httpStatusCode);
+
+        Map<String, Object> headers = HttpResponse.getDefaultHeader();
+        HttpResponse httpResponse = new HttpResponse();
+
+        headers.put("content-type", ContentType.APPLICATION_JSON);
+
+        String body = GsonUtils.toJson(jsonObject);
+
+        httpResponse.addHeader(headers);
+        httpResponse.setStatusCode(httpStatusCode);
+        httpResponse.setBody(body);
+        httpResponse.write(outputStream);
     }
 
     /**
@@ -134,7 +162,7 @@ public class HttpServerHost implements Runnable {
                                     AbstractBaseHandler abstractBaseHandler = handlerList.get(addPath);
 
                                     try {
-                                        abstractBaseHandler.run(inputStream, outputStream);
+                                        abstractBaseHandler.run(inputStream, outputStream, httpRequest);
                                         LogUtils.println("Connection %s <- Me | Response by Handler".formatted(hostAddress));
                                     } catch (Throwable e) {
                                         LogUtils.println("Error at GET Method Handlers Area", LogLevel.ERROR);
@@ -166,22 +194,55 @@ public class HttpServerHost implements Runnable {
                                     }
                                 }
                             } else if (requestMethod == HttpMethod.POST) {
-                                flag = false;
-                                throwSimpleCode(outputStream, HttpStatusCode.BAD_REQUEST, "Unsupported Method");
-                                LogUtils.println("Connection %s <- Me | Msg: Not Supported Method, StatusCode: 400".formatted(hostAddress));
+                                String addPath = path + "|" + HttpMethod.POST;
+
+                                LogUtils.println("Request Body(%s) \u21BB Me: %s".formatted(hostAddress, httpRequest.getBody()));
+
+                                if (handlerList.containsKey(addPath)) {
+                                    flag = false;
+
+                                    AbstractBaseHandler abstractBaseHandler = handlerList.get(addPath);
+
+                                    try {
+                                        abstractBaseHandler.run(inputStream, outputStream, httpRequest);
+                                        LogUtils.println("Connection %s <- Me | Response by Handler".formatted(hostAddress));
+                                    } catch (Throwable e) {
+                                        LogUtils.println("Error at POST Method Handlers Area", LogLevel.ERROR);
+                                        LogUtils.println(e.getMessage(), LogLevel.TRACE);
+                                        throw new IOException(e.getMessage());
+                                    }
+                                }
                             } else if (requestMethod == HttpMethod.PUT) {
-                                flag = false;
-                                throwSimpleCode(outputStream, HttpStatusCode.BAD_REQUEST, "Unsupported Method");
-                                LogUtils.println("Connection %s <- Me | Msg: Not Supported Method, StatusCode: 400".formatted(hostAddress));
+
                             } else if (requestMethod == HttpMethod.DELETE) {
-                                flag = false;
-                                throwSimpleCode(outputStream, HttpStatusCode.BAD_REQUEST, "Unsupported Method");
-                                LogUtils.println("Connection %s <- Me | Msg: Not Supported Method, StatusCode: 400".formatted(hostAddress));
+
                             }
 
                             if (flag) {
-                                throwSimpleCode(outputStream, HttpStatusCode.NOT_FOUND);
-                                LogUtils.println("Connection %s <- Me | Msg: Not Found, StatusCode: 404".formatted(hostAddress));
+                                if (requestMethod == HttpMethod.GET) {
+                                    throwSimpleCode(outputStream, HttpStatusCode.NOT_FOUND);
+                                    LogUtils.println("Connection %s <- Me | Msg: Not Found, StatusCode: 404".formatted(hostAddress));
+                                } else if (requestMethod == HttpMethod.POST) {
+                                    BasicError basicError = new BasicError(HttpStatusCode.BAD_REQUEST, null, requestMethod);
+
+                                    throwSimpleCodeWithJson(outputStream, HttpStatusCode.BAD_REQUEST, basicError);
+                                    LogUtils.println("Connection %s <- Me | Msg: Bad Request, StatusCode: 400".formatted(hostAddress));
+                                } else if (requestMethod == HttpMethod.PUT) {
+                                    BasicError basicError = new BasicError(HttpStatusCode.BAD_REQUEST, null, requestMethod);
+
+                                    throwSimpleCodeWithJson(outputStream, HttpStatusCode.BAD_REQUEST, basicError);
+                                    LogUtils.println("Connection %s <- Me | Msg: Bad Request, StatusCode: 400".formatted(hostAddress));
+                                } else if (requestMethod == HttpMethod.DELETE) {
+                                    BasicError basicError = new BasicError(HttpStatusCode.BAD_REQUEST, null, requestMethod);
+
+                                    throwSimpleCodeWithJson(outputStream, HttpStatusCode.BAD_REQUEST, basicError);
+                                    LogUtils.println("Connection %s <- Me | Msg: Bad Request, StatusCode: 400".formatted(hostAddress));
+                                } else {
+                                    BasicError basicError = new BasicError(HttpStatusCode.BAD_REQUEST, "Bad Method", requestMethod);
+
+                                    throwSimpleCodeWithJson(outputStream, HttpStatusCode.BAD_REQUEST, basicError);
+                                    LogUtils.println("Connection %s <- Me | Msg: Bad Request, StatusCode: 400".formatted(hostAddress));
+                                }
                             }
 
                         } catch (IOException ignored) {

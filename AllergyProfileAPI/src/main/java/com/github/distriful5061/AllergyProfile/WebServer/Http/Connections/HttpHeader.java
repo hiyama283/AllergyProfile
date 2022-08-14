@@ -1,5 +1,9 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http.Connections;
 
+import com.github.distriful5061.AllergyProfile.Utils.Log.LogLevel;
+import com.github.distriful5061.AllergyProfile.Utils.Log.LogUtils;
+import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.Header.HttpMethod;
+
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
@@ -23,20 +27,26 @@ public class HttpHeader {
      * @param header ヘッダー
      */
     public HttpHeader(String header) {
+        // LogUtils.println("A SPLIT", LogLevel.DEBUG);
         String[] splitHeader = header.split("\r\n");
+        // LogUtils.println("A SPLIT OK", LogLevel.DEBUG);
 
         this.startLine = splitHeader[0];
+        // LogUtils.println("A START LINE OK", LogLevel.DEBUG);
 
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 1; i < splitHeader.length; i++) {
             stringBuilder.append(splitHeader[i]).append("\r\n");
         }
+        // LogUtils.println("A BUILD OK", LogLevel.DEBUG);
 
         this.header = stringBuilder.toString();
 
         String[] splitStartLine = startLine.split(" ");
-        this.method = HttpMethod.valueOf(splitStartLine[0].toUpperCase());
+        this.method = HttpMethod.get(splitStartLine[0].toUpperCase());
+        // LogUtils.println("A ValueOf OK", LogLevel.DEBUG);
         this.path = URLDecoder.decode(splitStartLine[1], StandardCharsets.UTF_8);
+        // LogUtils.println("A DECODE OK", LogLevel.DEBUG);
     }
 
     public String getStartLine() {
