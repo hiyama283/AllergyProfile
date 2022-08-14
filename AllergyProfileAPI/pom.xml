@@ -6,7 +6,7 @@
 
     <groupId>com.github.distrufl5061.allergyprofile</groupId>
     <artifactId>AlergyProfileAPI</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
 
     <build>
         <plugins>
@@ -71,6 +71,13 @@
             <groupId>com.github.distriful5061.CryptLibrary</groupId>
             <artifactId>CryptLibrary</artifactId>
             <version>1.0.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.9.1</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

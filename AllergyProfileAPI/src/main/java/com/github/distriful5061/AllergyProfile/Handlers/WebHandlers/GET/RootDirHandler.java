@@ -1,7 +1,9 @@
-package com.github.distriful5061.AllergyProfile.Handlers.WebHandlers;
+package com.github.distriful5061.AllergyProfile.Handlers.WebHandlers.GET;
 
+import com.github.distriful5061.AllergyProfile.Handlers.WebHandlers.AbstractBaseHandler;
 import com.github.distriful5061.AllergyProfile.Utils.ResourceUtils;
-import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpMethod;
+import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.Header.HttpMethod;
+import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpRequest;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpResponse;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.HttpStatusCode;
 
@@ -20,7 +22,7 @@ import java.util.Map;
  */
 public class RootDirHandler extends AbstractBaseHandler {
     @Override
-    public void run(InputStream inputStream, OutputStream outputStream) {
+    public void run(InputStream inputStream, OutputStream outputStream, HttpRequest httpRequest) {
         HttpResponse httpResponse = new HttpResponse();
         Map<String, Object> headers = HttpResponse.getDefaultHeader();
 

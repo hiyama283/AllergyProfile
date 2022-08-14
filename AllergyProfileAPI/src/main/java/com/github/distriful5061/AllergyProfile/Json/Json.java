@@ -5,10 +5,11 @@ import java.util.Map;
 import static com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpRequest.CRLF;
 
 /**
- * Jsonを無理やり実装しようとしているクラス
+ * Jsonを無理やり実装しようとしているクラス。Gson仕様に伴い廃止
  *
  * @since 1.0
  */
+@Deprecated
 public class Json {
     /**
      * Map型のリストを、1階層型のJsonに変換するメソッド

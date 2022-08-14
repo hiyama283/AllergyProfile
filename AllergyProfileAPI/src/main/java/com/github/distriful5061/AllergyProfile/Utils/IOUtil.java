@@ -1,4 +1,4 @@
-package com.github.distriful5061.AllergyProfile.WebServer.Http;
+package com.github.distriful5061.AllergyProfile.Utils;
 
 import com.github.distriful5061.AllergyProfile.Utils.BaseUtils;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Exception.EmptyRequestException;
