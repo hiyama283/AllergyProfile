@@ -1,3 +1,9 @@
 {
-  "port": 8080
+  "httpApiConfig": {
+    "port": 8080
+  },
+  "tokenAuthConfig": {
+    "useHMACPassWord": "F\\ir8n\\R[INgVCsX\"\u0027\u003eatA:^BXUII_dZ\"LDp\u003ddrzJ\u0027ow85iM1pXSC\"tf-o4lx:mkAzivNG}5sH\u003d7DI|zb7JB`q.6Q\u003d(p-x_mG!~B|%Ov+\u0027B(;[A8!q[/Z]7sB1Hto^FH",
+    "regenRandomPassWord": false
+  }
 }

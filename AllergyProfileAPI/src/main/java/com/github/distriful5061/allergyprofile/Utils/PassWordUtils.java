@@ -35,9 +35,9 @@ public class PassWordUtils implements BaseUtils {
      * @param initVec scrambleContentに使用するランダムのシード値
      * @return ハッシュ化された文字列
      */
-    public static String getHash(String content, String algorithm, boolean scrambleContent, long initVec) {
+    public static String getHash(String content, HashEnum algorithm, boolean scrambleContent, long initVec) {
         try {
-            MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
+            MessageDigest messageDigest = MessageDigest.getInstance(algorithm.toString());
 
             if (scrambleContent) {
                 NewPassWord newPassWord = new NewPassWord();
@@ -46,7 +46,7 @@ public class PassWordUtils implements BaseUtils {
 
             byte[] cipher_byte = messageDigest.digest(content.getBytes());
 
-            return String.format("%040x", new BigInteger(1, cipher_byte));
+            return String.format(algorithm.getStringFormat(), new BigInteger(1, cipher_byte));
         } catch (NoSuchAlgorithmException ignored) {
             return null;
         }
@@ -61,7 +61,7 @@ public class PassWordUtils implements BaseUtils {
      * @return ハッシュ化された文字列
      */
     public static String getSHA256Hash(String content, boolean useScramble, long initVec) {
-        return getHash(content, "SHA-256", useScramble, initVec);
+        return getHash(content, HashEnum.SHA_256, useScramble, initVec);
     }
 
     /**
@@ -71,6 +71,6 @@ public class PassWordUtils implements BaseUtils {
      * @return ハッシュ化された文字列
      */
     public static String getSHA256Hash(String content) {
-        return getHash(content, "SHA-256", false, 1L);
+        return getHash(content, HashEnum.SHA_256, false, 1L);
     }
 }

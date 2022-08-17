@@ -13,6 +13,26 @@ public class ResourceUtils implements BaseUtils {
         return 284747540;
     }
 
+    private static boolean checkBeforeWriteFile(File file){
+        if (file.exists()){
+            if (file.isFile() && file.canWrite()){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean checkBeforeReadFile(File file){
+        if (file.exists()){
+            if (file.isFile() && file.canRead()){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * リソースをFile型にして返す、
      *
@@ -30,8 +50,10 @@ public class ResourceUtils implements BaseUtils {
      * @return 読み込んだデータ。nullの可能性があります
      */
     public static String getPlainTextResourcesByName(String name) {
-        File file = new File("src/main/resources/"+name);
+        File file = getFileResourcesByName(name);
         String result = null;
+
+        if (!checkBeforeReadFile(file)) return null;
 
         try (
                 BufferedReader bufferedReader = new BufferedReader(new FileReader(file))
@@ -48,5 +70,23 @@ public class ResourceUtils implements BaseUtils {
         } catch (IOException ignored) {}
 
         return result;
+    }
+
+    public static void setPlainTextResourcesByName(String name, String content) throws IOException {
+        File file = getFileResourcesByName(name);
+
+        if (!checkBeforeWriteFile(file)) return;
+
+        try (
+                BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
+        )
+        {
+
+            String[] splitString = content.replace("\r\n", "\r").replace("\n", "\r").replace("\r", "\n").split("\n");
+            for (String s : splitString) {
+                bufferedWriter.write(s);
+                bufferedWriter.newLine();
+            }
+        }
     }
 }
