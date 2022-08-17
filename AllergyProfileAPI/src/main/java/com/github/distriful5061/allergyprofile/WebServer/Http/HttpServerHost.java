@@ -1,16 +1,13 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http;
 
 import com.github.distriful5061.AllergyProfile.Handlers.WebHandlers.AbstractBaseHandler;
-import com.github.distriful5061.AllergyProfile.Utils.GsonUtils;
 import com.github.distriful5061.AllergyProfile.Utils.Log.LogLevel;
 import com.github.distriful5061.AllergyProfile.Utils.Log.LogUtils;
 import com.github.distriful5061.AllergyProfile.Utils.ResourceUtils;
-import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.Header.ContentType;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.Header.HttpMethod;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpRequest;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpResponse;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Gson.Response.BasicError;
-import com.github.distriful5061.AllergyProfile.WebServer.Http.Gson.Response.StatusCodeOnly;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +17,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.HttpResponse.throwSimpleCodeWithJson;
 
 /**
  * Httpサーバーをホストしているクラス
@@ -70,52 +69,6 @@ public class HttpServerHost implements Runnable {
     }
 
     /**
-     * スタッツコードと、Jsonに変換できるクラス(インスタンス)を使用することで、簡単にjsonとして返信ができるメソッド。
-     *
-     * @param outputStream 送信先stream
-     * @param httpStatusCode ステータスコード
-     * @param jsonObject Jsonに変換できるオブジェクト
-     * @throws IOException 送信に失敗しました。
-     */
-    public static void throwSimpleCodeWithJson(OutputStream outputStream, HttpStatusCode httpStatusCode, Object jsonObject) throws IOException {
-        if (jsonObject == null) jsonObject = new StatusCodeOnly(httpStatusCode);
-
-        Map<String, Object> headers = HttpResponse.getDefaultHeader();
-        HttpResponse httpResponse = new HttpResponse();
-
-        headers.put("content-type", ContentType.APPLICATION_JSON);
-
-        String body = GsonUtils.toJson(jsonObject);
-
-        httpResponse.addHeader(headers);
-        httpResponse.setStatusCode(httpStatusCode);
-        httpResponse.setBody(body);
-        httpResponse.write(outputStream);
-    }
-
-    /**
-     * OutputStream, HttpStatusCode, Bodyだけで簡単なスタッツコード形式のレスポンスの返答が可能。
-     *
-     * @param outputStream 送信先stream
-     * @param httpStatusCode スタッツコード
-     * @param body ボディ
-     * @throws IOException 送信に失敗しました。
-     */
-    public static void throwSimpleCode(OutputStream outputStream, HttpStatusCode httpStatusCode, String body) throws IOException {
-        if (body == null) body = "";
-
-        Map<String, Object> headers = HttpResponse.getDefaultHeader();
-        HttpResponse httpResponse = new HttpResponse();
-
-        headers.put("content-type", ContentType.TEXT_PLAIN);
-
-        httpResponse.addHeader(headers);
-        httpResponse.setStatusCode(httpStatusCode);
-        httpResponse.setBody("%d %s\n%s".formatted(httpStatusCode.getStatusCode(), httpStatusCode.getExtension(), body));
-        httpResponse.write(outputStream);
-    }
-
-    /**
      * スタッツコードだけで簡易的な返答を行うメソッド
      *
      * @param outputStream 送信先stream
@@ -123,7 +76,7 @@ public class HttpServerHost implements Runnable {
      * @throws IOException 送信に失敗しました。
      */
     public static void throwSimpleCode(OutputStream outputStream, HttpStatusCode httpStatusCode) throws IOException {
-        throwSimpleCode(outputStream, httpStatusCode, "");
+        HttpResponse.throwSimpleCode(outputStream, httpStatusCode, "");
     }
     @Override
     public void run() {
@@ -198,7 +151,7 @@ public class HttpServerHost implements Runnable {
 
                                 LogUtils.println("Request Body(%s) \u21BB Me: %s".formatted(hostAddress, httpRequest.getBody()));
 
-                                if (handlerList.containsKey(addPath)) {
+                                if (handlerList.containsKey(addPath) && httpRequest.getBody() != null) {
                                     flag = false;
 
                                     AbstractBaseHandler abstractBaseHandler = handlerList.get(addPath);
@@ -213,9 +166,43 @@ public class HttpServerHost implements Runnable {
                                     }
                                 }
                             } else if (requestMethod == HttpMethod.PUT) {
+                                String addPath = path + "|" + HttpMethod.PUT;
 
+                                LogUtils.println("Request Body(%s) \u21BB Me: %s".formatted(hostAddress, httpRequest.getBody()));
+
+                                if (handlerList.containsKey(addPath) && httpRequest.getBody() != null) {
+                                    flag = false;
+
+                                    AbstractBaseHandler abstractBaseHandler = handlerList.get(addPath);
+
+                                    try {
+                                        abstractBaseHandler.run(inputStream, outputStream, httpRequest);
+                                        LogUtils.println("Connection %s <- Me | Response by Handler".formatted(hostAddress));
+                                    } catch (Throwable e) {
+                                        LogUtils.println("Error at PUT Method Handlers Area", LogLevel.ERROR);
+                                        LogUtils.println(e.getMessage(), LogLevel.TRACE);
+                                        throw new IOException(e.getMessage());
+                                    }
+                                }
                             } else if (requestMethod == HttpMethod.DELETE) {
+                                String addPath = path + "|" + HttpMethod.DELETE;
 
+                                LogUtils.println("Request Body(%s) \u21BB Me: %s".formatted(hostAddress, httpRequest.getBody()));
+
+                                if (handlerList.containsKey(addPath) && httpRequest.getBody() != null) {
+                                    flag = false;
+
+                                    AbstractBaseHandler abstractBaseHandler = handlerList.get(addPath);
+
+                                    try {
+                                        abstractBaseHandler.run(inputStream, outputStream, httpRequest);
+                                        LogUtils.println("Connection %s <- Me | Response by Handler".formatted(hostAddress));
+                                    } catch (Throwable e) {
+                                        LogUtils.println("Error at DELETE Method Handlers Area", LogLevel.ERROR);
+                                        LogUtils.println(e.getMessage(), LogLevel.TRACE);
+                                        throw new IOException(e.getMessage());
+                                    }
+                                }
                             }
 
                             if (flag) {
@@ -272,7 +259,7 @@ public class HttpServerHost implements Runnable {
             }
         } catch (Throwable e) {
             LogUtils.println("Fatal Error", LogLevel.FATAL);
-            LogUtils.println(e.getMessage(), LogLevel.TRACE);
+            LogUtils.println(e.getMessage(), LogLevel.FATAL);
 
             try {
                 serverSocket.close();

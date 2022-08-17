@@ -1,6 +1,8 @@
 package com.github.distriful5061.AllergyProfile.WebServer.Http.Connections;
 
+import com.github.distriful5061.AllergyProfile.Utils.GsonUtils;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.Connections.Header.ContentType;
+import com.github.distriful5061.AllergyProfile.WebServer.Http.Gson.Response.StatusCodeOnly;
 import com.github.distriful5061.AllergyProfile.WebServer.Http.HttpStatusCode;
 import com.github.distriful5061.AllergyProfile.Utils.IOUtil;
 
@@ -22,6 +24,52 @@ public class HttpResponse {
     private HttpStatusCode statusCode;
     private String body;
     private File bodyFile;
+
+    /**
+     * スタッツコードと、Jsonに変換できるクラス(インスタンス)を使用することで、簡単にjsonとして返信ができるメソッド。
+     *
+     * @param outputStream 送信先stream
+     * @param httpStatusCode ステータスコード
+     * @param jsonObject Jsonに変換できるオブジェクト
+     * @throws IOException 送信に失敗しました。
+     */
+    public static void throwSimpleCodeWithJson(OutputStream outputStream, HttpStatusCode httpStatusCode, Object jsonObject) throws IOException {
+        if (jsonObject == null) jsonObject = new StatusCodeOnly(httpStatusCode);
+
+        Map<String, Object> headers = HttpResponse.getDefaultHeader();
+        HttpResponse httpResponse = new HttpResponse();
+
+        headers.put("content-type", ContentType.APPLICATION_JSON);
+
+        String body = GsonUtils.toJson(jsonObject);
+
+        httpResponse.addHeader(headers);
+        httpResponse.setStatusCode(httpStatusCode);
+        httpResponse.setBody(body);
+        httpResponse.write(outputStream);
+    }
+
+    /**
+     * OutputStream, HttpStatusCode, Bodyだけで簡単なスタッツコード形式のレスポンスの返答が可能。
+     *
+     * @param outputStream 送信先stream
+     * @param httpStatusCode スタッツコード
+     * @param body ボディ
+     * @throws IOException 送信に失敗しました。
+     */
+    public static void throwSimpleCode(OutputStream outputStream, HttpStatusCode httpStatusCode, String body) throws IOException {
+        if (body == null) body = "";
+
+        Map<String, Object> headers = HttpResponse.getDefaultHeader();
+        HttpResponse httpResponse = new HttpResponse();
+
+        headers.put("content-type", ContentType.TEXT_PLAIN);
+
+        httpResponse.addHeader(headers);
+        httpResponse.setStatusCode(httpStatusCode);
+        httpResponse.setBody("%d %s\n%s".formatted(httpStatusCode.getStatusCode(), httpStatusCode.getExtension(), body));
+        httpResponse.write(outputStream);
+    }
 
     /**
      * Map型でヘッダーを作成する際に呼び出すメソッド。これにより最低限必要なヘッダーが手に入る
